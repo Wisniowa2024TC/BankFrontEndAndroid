@@ -16,13 +16,15 @@ public class MainActivity extends AppCompatActivity {
     EditText poleZLoginem;
     EditText haslo;
 
-    // Lista użytkowników
     Myuser u1 = new Myuser("koi", "1234");
     Myuser u2 = new Myuser("kostek", "25000");
     Myuser u3 = new Myuser("Artem", "31231!k");
 
     Myuser[] users = {u1, u2, u3};
 
+    protected void rejestr() {
+        setContentView(R.layout.rejestr);
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -32,22 +34,5 @@ public class MainActivity extends AppCompatActivity {
 
         haslo = findViewById(R.id.haslo);
         poleZLoginem = findViewById(R.id.user);
-
-        ViewCompat.setOnApplyWindowInsetsListener(
-                findViewById(R.id.main), (v, insets) -> {
-                    Insets systemBars = insets.getInsets(
-                            WindowInsetsCompat.Type.systemBars()
-                    );
-
-                    v.setPadding(
-                            systemBars.left,
-                            systemBars.top,
-                            systemBars.right,
-                            systemBars.bottom
-                    );
-
-                    return insets;
-                }
-        );
     }
 }
