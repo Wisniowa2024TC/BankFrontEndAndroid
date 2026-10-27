@@ -42,7 +42,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Zaloguj się"
-        android:onClick="login"></Button>
+        android:onClick="login"
+        ></Button>
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -51,6 +52,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Zarejestruj się"
+        android:onClick="rejestracja"
         ></Button>
     <ImageView
         android:layout_width="match_parent"
