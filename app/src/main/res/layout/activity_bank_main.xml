@@ -49,9 +49,9 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingEnd="60dp"
-        android:paddingStart="60dp"
-        android:paddingTop="16dp"
+        android:paddingEnd="70dp"
+        android:paddingStart="70dp"
+        android:paddingTop="20dp"
         android:orientation="horizontal"
         android:gravity="center">
         <LinearLayout
@@ -60,13 +60,12 @@
             android:layout_weight="1"
             android:gravity="center"
             android:orientation="vertical">
-            <TextView
+            <ImageView
                 android:layout_width="56dp"
                 android:layout_height="56dp"
                 android:background="@drawable/bg_circle_button"
-                android:gravity="center"
-                android:text="⬇️"
-                android:textSize="22sp" />
+                android:scaleType="center"
+                android:src="@drawable/ic_arrow_down" />
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -94,5 +93,6 @@
                 android:text="Blih" />
         </LinearLayout>
     </LinearLayout>
+
 
 </LinearLayout>
