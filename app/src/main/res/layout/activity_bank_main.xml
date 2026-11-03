@@ -64,6 +64,7 @@
                 android:layout_width="56dp"
                 android:layout_height="56dp"
                 android:background="@drawable/bg_circle_button"
+                android:importantForAccessibility="no"
                 android:scaleType="center"
                 android:src="@drawable/ic_arrow_down" />
             <TextView
@@ -289,4 +290,5 @@
 
         </LinearLayout>
 
+</LinearLayout>
 </LinearLayout>
