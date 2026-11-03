@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
+import android.content.Intent;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -118,7 +119,8 @@ public class MainActivity extends AppCompatActivity {
             if (u.getUsername().equals(login)
                     && u.getPassword().equals(password)) {
 
-                setContentView(R.layout.zalogowany);
+                Intent intent = new Intent(MainActivity.this, BankMainActivity.class);
+                startActivity(intent);
                 return;
             }
         }
