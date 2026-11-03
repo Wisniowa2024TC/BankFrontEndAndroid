@@ -6,22 +6,26 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:background="#EDD3D3"
     tools:context=".MainActivity">
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="JEVBANK"
+        android:textColor="#CC9AD4"
         android:textSize="50sp"></TextView>
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Login"
+        android:textColor="#FF7C98"
         ></TextView>
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Username"
+        android:textColor="#FF7C98"
         ></TextView>
     <EditText
         android:layout_width="match_parent"
@@ -31,6 +35,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Hasło"
+        android:textColor="#FF7C98"
         ></TextView>
     <EditText
         android:id="@+id/haslo"
@@ -47,7 +52,8 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Nie masz konta?"></TextView>
+        android:text="Nie masz konta?"
+        android:textColor="#FF7C98"></TextView>
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -58,6 +64,4 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:src="@drawable/astolfobackround"></ImageView>
-
-
 </androidx.appcompat.widget.LinearLayoutCompat>
