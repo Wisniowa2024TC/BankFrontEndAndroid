@@ -17,8 +17,7 @@
         android:textSize="30dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        android:textColor="#CC9AD4"/>
+        app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/textView2"
@@ -27,7 +26,6 @@
         android:layout_marginStart="136dp"
         android:layout_marginTop="8dp"
         android:text="Podaj swój username"
-        android:textColor="#FF7C98"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/textView" />
 
@@ -49,7 +47,6 @@
         android:layout_marginStart="168dp"
         android:layout_marginTop="8dp"
         android:text="Podaj hasło"
-        android:textColor="#FF7C98"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/username" />
 
