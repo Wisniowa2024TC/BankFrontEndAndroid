@@ -19,6 +19,7 @@
             android:layout_weight="1"
             android:gravity="center"
             android:text="JEWBANK"
+            android:textColor="#1A1A24"
             android:textSize="24sp"
             android:textStyle="bold" />
     </LinearLayout>
@@ -34,6 +35,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Twoje Saldo"
+            android:textColor="#555555"
             android:textSize="16sp" />
         <!-- Balance -->
         <TextView
@@ -41,6 +43,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="6769 zł"
+            android:textColor="#1A1A24"
             android:textSize="67sp"
             android:textStyle="bold"
             android:layout_marginTop="4dp"/>
@@ -70,6 +73,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:textColor="#1A1A24"
                 android:text="Wpłać" />
         </LinearLayout>
         <LinearLayout
@@ -91,6 +95,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:textColor="#1A1A24"
                 android:text="Blih" />
         </LinearLayout>
     </LinearLayout>
@@ -116,12 +121,14 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="Historia"
+                android:textColor="#1A1A24"
                 android:textSize="20sp"
                 android:textStyle="bold" />
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="All ▾"
+                android:textColor="#555555"
                 android:textSize="14sp"
                 android:textStyle="bold"
                 android:layout_marginEnd="10dp" />
@@ -138,6 +145,7 @@
                 android:layout_height="40dp"
                 android:gravity="center"
                 android:text="↙"
+                android:textColor="#2E7D32"
                 android:textSize="20sp"
                 android:textStyle="bold" />
             <LinearLayout
@@ -149,7 +157,8 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Kniga Kowalska"
+                    android:text="Kinga Kowalska"
+                    android:textColor="#1A1A24"
                     android:textSize="16sp"
                     android:textStyle="bold" />
                 <TextView
@@ -157,7 +166,7 @@
                     android:layout_height="wrap_content"
                     android:text="Przelew przychodzący"
                     android:textSize="12sp"
-                    android:textColor="#888888" />
+                    android:textColor="#666666" />
             </LinearLayout>
 
             <LinearLayout
@@ -169,12 +178,14 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="+120zł"
+                    android:textColor="#2E7D32"
                     android:textSize="15sp"
                     android:textStyle="bold" />
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="12.05.26"
+                    android:textColor="#777777"
                     android:textSize="12sp" />
             </LinearLayout>
 
@@ -192,6 +203,7 @@
                 android:layout_height="40dp"
                 android:gravity="center"
                 android:text="↙"
+                android:textColor="#2E7D32"
                 android:textSize="20sp"
                 android:textStyle="bold" />
             <LinearLayout
@@ -203,7 +215,8 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Kniga Kowalska"
+                    android:text="Kinga Kowalska"
+                    android:textColor="#1A1A24"
                     android:textSize="16sp"
                     android:textStyle="bold" />
                 <TextView
@@ -211,7 +224,7 @@
                     android:layout_height="wrap_content"
                     android:text="Przelew przychodzący"
                     android:textSize="12sp"
-                    android:textColor="#888888" />
+                    android:textColor="#666666" />
             </LinearLayout>
 
             <LinearLayout
@@ -223,12 +236,14 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="+120zł"
+                    android:textColor="#2E7D32"
                     android:textSize="15sp"
                     android:textStyle="bold" />
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="12.05.26"
+                    android:textColor="#777777"
                     android:textSize="12sp" />
             </LinearLayout>
 
@@ -246,6 +261,7 @@
                 android:layout_height="40dp"
                 android:gravity="center"
                 android:text="↙"
+                android:textColor="#2E7D32"
                 android:textSize="20sp"
                 android:textStyle="bold" />
             <LinearLayout
@@ -257,7 +273,8 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Kniga Kowalska"
+                    android:text="Kinga Kowalska"
+                    android:textColor="#1A1A24"
                     android:textSize="16sp"
                     android:textStyle="bold" />
                 <TextView
@@ -265,7 +282,7 @@
                     android:layout_height="wrap_content"
                     android:text="Przelew przychodzący"
                     android:textSize="12sp"
-                    android:textColor="#888888" />
+                    android:textColor="#666666" />
             </LinearLayout>
 
             <LinearLayout
@@ -277,12 +294,14 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="+120zł"
+                    android:textColor="#2E7D32"
                     android:textSize="15sp"
                     android:textStyle="bold" />
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="12.05.26"
+                    android:textColor="#777777"
                     android:textSize="12sp" />
             </LinearLayout>
 

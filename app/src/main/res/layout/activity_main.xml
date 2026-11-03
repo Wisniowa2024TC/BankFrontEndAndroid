@@ -13,49 +13,52 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="JEVBANK"
-        android:textSize="50sp"></TextView>
+        android:textColor="#1A1A24"
+        android:textSize="50sp" />
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Login"
-        ></TextView>
+        android:textColor="#1A1A24"
+        android:text="Login" />
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Username"
-        ></TextView>
+        android:textColor="#1A1A24"
+        android:text="Username" />
     <EditText
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/user"></EditText>
+        android:id="@+id/user"
+        android:textColor="#1A1A24"
+        android:textColorHint="#666666" />
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Hasło"
-        ></TextView>
+        android:textColor="#1A1A24"
+        android:text="Hasło" />
     <EditText
         android:id="@+id/haslo"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:ems="10"
+        android:textColor="#1A1A24"
+        android:textColorHint="#666666"
         android:inputType="textPassword" />
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Zaloguj się"
-        android:onClick="login"
-        ></Button>
+        android:onClick="login" />
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Nie masz konta?"
-        ></TextView>
+        android:textColor="#1A1A24"
+        android:text="Nie masz konta?" />
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Zarejestruj się"
-        android:onClick="rejestracja"
-        ></Button>
+        android:onClick="rejestracja" />
     <ImageView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
