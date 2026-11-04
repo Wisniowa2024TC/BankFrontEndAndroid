@@ -82,16 +82,18 @@
             android:layout_weight="1"
             android:gravity="center"
             android:orientation="vertical">
+
             <TextView
                 android:id="@+id/btn_blih"
                 android:layout_width="56dp"
                 android:layout_height="56dp"
-                android:text="B"
-                android:textStyle="bold"
-                android:textSize="22sp"
-                android:textColor="@color/white"
+                android:background="@drawable/bg_circle_button"
                 android:gravity="center"
-                android:background="@drawable/bg_circle_button"/>
+                android:text="B"
+                android:textColor="@color/white"
+                android:textSize="22sp"
+                android:textStyle="bold" />
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
