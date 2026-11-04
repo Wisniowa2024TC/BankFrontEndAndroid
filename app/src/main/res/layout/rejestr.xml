@@ -13,7 +13,7 @@
         android:layout_width="357dp"
         android:layout_height="47dp"
         android:layout_marginTop="5dp"
-        android:text="Załóż konto w JEVBANKU!"
+        android:text="Załóż konto w GOONBANKU!"
         android:textColor="#1A1A24"
         android:textSize="30dp"
         app:layout_constraintEnd_toEndOf="parent"
