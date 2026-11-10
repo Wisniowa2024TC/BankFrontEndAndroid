@@ -5,7 +5,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp">
+    android:padding="16dp"
+    android:background="#EDD3D3">
 
     <TextView
         android:id="@+id/textView5"
@@ -46,5 +47,13 @@
         android:text="Tak"
         app:layout_constraintTop_toTopOf="@id/button2"
         app:layout_constraintEnd_toEndOf="parent" />
+
+    <ImageView
+        android:id="@+id/imageView5"
+        android:layout_width="122dp"
+        android:layout_height="93dp"
+        app:srcCompat="@drawable/astolfoincorner"
+        tools:layout_editor_absoluteX="136dp"
+        tools:layout_editor_absoluteY="102dp" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -31,22 +31,24 @@
         android:gravity="center"
         android:layout_marginTop="40dp"
         android:layout_marginBottom="24dp">
+
+        <!-- Balance -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Twoje Saldo"
             android:textColor="#555555"
             android:textSize="16sp" />
-        <!-- Balance -->
+
         <TextView
             android:id="@+id/tv_balance"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
             android:text="6769 zł"
             android:textColor="#1A1A24"
             android:textSize="67sp"
-            android:textStyle="bold"
-            android:layout_marginTop="4dp"/>
+            android:textStyle="bold" />
     </LinearLayout>
     <!-- Buttons -->
     <LinearLayout
@@ -63,7 +65,7 @@
             android:layout_weight="1"
             android:gravity="center"
             android:orientation="vertical">
-            <ImageView
+            <ImageButton
                 android:layout_width="56dp"
                 android:layout_height="56dp"
                 android:background="@drawable/bg_circle_button"
@@ -83,12 +85,14 @@
             android:gravity="center"
             android:orientation="vertical">
 
-            <TextView
+            <Button
                 android:id="@+id/btn_blih"
                 android:layout_width="56dp"
                 android:layout_height="56dp"
                 android:background="@drawable/bg_circle_button"
                 android:gravity="center"
+                android:onClick="blih,
+"
                 android:text="B"
                 android:textColor="@color/white"
                 android:textSize="22sp"

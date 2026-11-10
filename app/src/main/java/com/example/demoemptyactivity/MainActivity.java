@@ -107,7 +107,12 @@ public class MainActivity extends AppCompatActivity {
         poleZLoginem = findViewById(R.id.user);
         this.haslo = findViewById(R.id.haslo);
     }
-
+    protected void powrot(){
+        setContentView(R.layout.activity_bank_main);
+    }
+    protected void blih(){
+        setContentView(R.layout.blih);
+    }
     public void login(View view) {
         EditText user = findViewById(R.id.user);
         EditText haslo = findViewById(R.id.haslo);
