@@ -110,7 +110,7 @@ public class MainActivity extends AppCompatActivity {
     protected void powrot(){
         setContentView(R.layout.activity_bank_main);
     }
-    protected void blih(){
+    protected void bl(){
         setContentView(R.layout.blih);
     }
     public void login(View view) {

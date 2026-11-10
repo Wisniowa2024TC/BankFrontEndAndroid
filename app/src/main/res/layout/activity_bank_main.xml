@@ -91,8 +91,7 @@
                 android:layout_height="56dp"
                 android:background="@drawable/bg_circle_button"
                 android:gravity="center"
-                android:onClick="blih,
-"
+                android:onClick="bl"
                 android:text="B"
                 android:textColor="@color/white"
                 android:textSize="22sp"
