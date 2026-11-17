@@ -107,11 +107,11 @@ public class MainActivity extends AppCompatActivity {
         poleZLoginem = findViewById(R.id.user);
         this.haslo = findViewById(R.id.haslo);
     }
-    protected void powrot(){
+    protected void powrot(View view){
         setContentView(R.layout.activity_bank_main);
     }
-    protected void bl(){
-        setContentView(R.layout.blih);
+    protected void bl(View view){
+
     }
     public void login(View view) {
         EditText user = findViewById(R.id.user);
@@ -135,5 +135,8 @@ public class MainActivity extends AppCompatActivity {
                 "Zły login",
                 Toast.LENGTH_SHORT
         ).show();
+    }
+    public void backToLogin(View view) {
+        setContentView(R.layout.activity_main);
     }
 }

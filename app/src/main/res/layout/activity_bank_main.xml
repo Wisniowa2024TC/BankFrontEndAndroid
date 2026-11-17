@@ -87,8 +87,8 @@
 
             <Button
                 android:id="@+id/btn_blih"
-                android:layout_width="56dp"
-                android:layout_height="56dp"
+                android:layout_width="61dp"
+                android:layout_height="wrap_content"
                 android:background="@drawable/bg_circle_button"
                 android:gravity="center"
                 android:onClick="bl"
