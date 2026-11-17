@@ -65,10 +65,13 @@
             android:layout_weight="1"
             android:gravity="center"
             android:orientation="vertical">
-            <ImageButton
+            <ImageView
+                android:id="@+id/btn_wplac"
                 android:layout_width="56dp"
                 android:layout_height="56dp"
                 android:background="@drawable/bg_circle_button"
+                android:clickable="true"
+                android:focusable="true"
                 android:importantForAccessibility="no"
                 android:scaleType="center"
                 android:src="@drawable/ic_arrow_down" />
@@ -85,17 +88,18 @@
             android:gravity="center"
             android:orientation="vertical">
 
-            <Button
+            <TextView
                 android:id="@+id/btn_blih"
-                android:layout_width="61dp"
-                android:layout_height="wrap_content"
-                android:background="@drawable/bg_circle_button"
-                android:gravity="center"
-                android:onClick="bl"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
                 android:text="B"
-                android:textColor="@color/white"
+                android:textStyle="bold"
                 android:textSize="22sp"
-                android:textStyle="bold" />
+                android:textColor="@color/white"
+                android:gravity="center"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="@drawable/bg_circle_button"/>
 
             <TextView
                 android:layout_width="wrap_content"
