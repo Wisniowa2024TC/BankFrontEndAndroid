@@ -24,6 +24,8 @@
         <activity
             android:name=".BankMainActivity"
             android:exported="false" />
+        <activity android:name=".BlihActivity"
+            android:exported="false" />
     </application>
 
 </manifest>
