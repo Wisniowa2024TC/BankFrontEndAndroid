@@ -13,24 +13,17 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-import java.util.ArrayList;
+import com.example.demoemptyactivity.network.ApiClient;
+import com.example.demoemptyactivity.network.LoginRequest;
+import com.example.demoemptyactivity.network.LoginResponse;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity {
-
     EditText poleZLoginem;
     EditText haslo;
-
-    Myuser u1 = new Myuser("koi", "1234");
-    Myuser u2 = new Myuser("kostek", "25000");
-    Myuser u3 = new Myuser("Artem", "31231!k");
-
-    ArrayList<Myuser> users = new ArrayList<>();
-
-    {
-        users.add(u1);
-        users.add(u2);
-        users.add(u3);
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,78 +58,53 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void newuser(View view) {
-        EditText user = findViewById(R.id.username);
-        EditText password = findViewById(R.id.password);
+        Toast.makeText(MainActivity.this, "Rejestracja w trakcie implementacji...", Toast.LENGTH_SHORT).show();
+    }
+    public void login(View view) {
+        String email = poleZLoginem.getText().toString().trim();
+        String password = haslo.getText().toString();
 
-        String username = user.getText().toString().trim();
-        String haslo = password.getText().toString();
-
-        if (username.isEmpty() || haslo.isEmpty()) {
+        if (email.isEmpty() || password.isEmpty()) {
             Toast.makeText(
                     this,
-                    "Podaj username i hasło!",
+                    "Wypełnij wszystkie pola",
                     Toast.LENGTH_SHORT
             ).show();
             return;
         }
 
-        for (Myuser u : users) {
-            if (u.getUsername().equals(username)) {
-                Toast.makeText(
-                        this,
-                        "Taki username już istnieje!",
-                        Toast.LENGTH_SHORT
-                ).show();
-                return;
+        // Call the backend via retrofit
+        LoginRequest request = new LoginRequest(email, password);
+        ApiClient.getApiService().login(request).enqueue(new Callback<LoginResponse>() {
+            @Override
+            public void onResponse(Call<LoginResponse> call, Response<LoginResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    LoginResponse auth = response.body();
+
+                    Toast.makeText(MainActivity.this, "Witaj " + auth.getFirstName(), Toast.LENGTH_SHORT).show();
+
+                    Intent intent = new Intent(MainActivity.this, BankMainActivity.class);
+                    intent.putExtra("TOKEN", auth.getToken());
+                    intent.putExtra("ACCOUNT_ID", auth.getAccountId());
+                    intent.putExtra("NAME", auth.getFirstName() + " " + auth.getLastName());
+                    intent.putExtra("BALANCE", auth.getBalance());
+                    startActivity(intent);
+                } else {
+                    Toast.makeText(MainActivity.this, "Błąd logowania. (Kod: " + response.code() + ")", Toast.LENGTH_SHORT).show();
+                }
             }
-        }
 
-        Myuser userkolejny = new Myuser(username, haslo);
-        users.add(userkolejny);
-
-        int numer = users.size();
-
-        Toast.makeText(
-                this,
-                "Utworzono użytkownika nr " + numer,
-                Toast.LENGTH_SHORT
-        ).show();
-
-        setContentView(R.layout.activity_main);
-
-        poleZLoginem = findViewById(R.id.user);
-        this.haslo = findViewById(R.id.haslo);
-    }
-    protected void powrot(View view){
-        setContentView(R.layout.activity_bank_main);
-    }
-    protected void bl(View view){
-
-    }
-    public void login(View view) {
-        EditText user = findViewById(R.id.user);
-        EditText haslo = findViewById(R.id.haslo);
-
-        String login = user.getText().toString().trim();
-        String password = haslo.getText().toString();
-
-        for (Myuser u : users) {
-            if (u.getUsername().equals(login)
-                    && u.getPassword().equals(password)) {
-
-                Intent intent = new Intent(MainActivity.this, BankMainActivity.class);
-                startActivity(intent);
-                return;
+            @Override
+            public void onFailure(Call<LoginResponse> call, Throwable t) {
+                // If server not reachable
+                Toast.makeText(MainActivity.this, "Błąd połączenia z serwerem: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
-        }
-
-        Toast.makeText(
-                this,
-                "Zły login",
-                Toast.LENGTH_SHORT
-        ).show();
+        });
     }
+
     public void backToLogin(View view) {
         setContentView(R.layout.activity_main);
+        poleZLoginem = findViewById(R.id.user);
+        haslo = findViewById(R.id.haslo);
     }
 }
