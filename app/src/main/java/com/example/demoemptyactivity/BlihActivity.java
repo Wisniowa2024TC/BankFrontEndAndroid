@@ -29,7 +29,7 @@ public class BlihActivity extends AppCompatActivity {
     private CountDownTimer timer;
     private Handler pollHandler = new Handler(Looper.getMainLooper());
     private Runnable pollRunnable;
-    private String currentCode = "627354";
+    private String currentCode = "";
     private String token;
     private boolean isDialogShowing = false;
 
@@ -57,12 +57,12 @@ public class BlihActivity extends AppCompatActivity {
         token = getIntent().getStringExtra("TOKEN");
         String accountId = getIntent().getStringExtra("ACCOUNT_ID");
 
-        // Display code 627 354
-        displayCodeAndStartTimer("627354");
-
-        // Fetch real code from backend if account ID available
         if (token != null && accountId != null && !accountId.isEmpty()) {
+            if (tvCode != null) tvCode.setText("------");
+            if (tvTimer != null) tvTimer.setText("Pobieranie kodu...");
             fetchRealBlihCode(token, accountId);
+        } else {
+            refreshBlihCode();
         }
 
         // Start listening for merchant payment requests for this code
@@ -92,7 +92,10 @@ public class BlihActivity extends AppCompatActivity {
                     }
 
                     @Override
-                    public void onFailure(Call<BlihCodeResponse> call, Throwable t) {}
+                    public void onFailure(Call<BlihCodeResponse> call, Throwable t) {
+                        int randomCode = 100000 + new Random().nextInt(900000);
+                        displayCodeAndStartTimer(String.valueOf(randomCode));
+                    }
                 });
     }
 
