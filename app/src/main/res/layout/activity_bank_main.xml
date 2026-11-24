@@ -161,13 +161,21 @@
                 android:textSize="20sp"
                 android:textStyle="bold" />
             <TextView
+                android:id="@+id/btn_filter_transactions"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="All ▾"
-                android:textColor="#555555"
+                android:textColor="#444444"
                 android:textSize="14sp"
                 android:textStyle="bold"
-                android:layout_marginEnd="10dp" />
+                android:background="#EFEFEF"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:paddingTop="6dp"
+                android:paddingBottom="6dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:layout_marginEnd="6dp" />
         </LinearLayout>
         <!-- Scrollable container for dynamic transactions -->
         <androidx.core.widget.NestedScrollView

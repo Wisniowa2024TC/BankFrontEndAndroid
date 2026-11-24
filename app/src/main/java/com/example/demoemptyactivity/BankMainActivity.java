@@ -15,6 +15,7 @@ import com.example.demoemptyactivity.network.ApiClient;
 import com.example.demoemptyactivity.network.TransactionResponse;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -27,10 +28,15 @@ public class BankMainActivity extends AppCompatActivity {
 
     private double currentBalance = 6769.0;
     private TextView tvBalance;
+    private TextView tvFilter;
     private LinearLayout transactionsContainer;
     private String token;
     private String accountId;
     private String userName = "Artem Kowalski";
+
+    // 0 = All, 1 = Incoming only (↙), 2 = Outgoing only (↗)
+    private int currentFilter = 0;
+    private final List<TransactionResponse> allTransactions = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,8 +55,9 @@ public class BankMainActivity extends AppCompatActivity {
             }
         }
 
-        // 2. Set balance display
+        // 2. Set balance and views
         tvBalance = findViewById(R.id.tv_balance);
+        tvFilter = findViewById(R.id.btn_filter_transactions);
         transactionsContainer = findViewById(R.id.transactions_container);
         updateBalanceDisplay();
 
@@ -83,7 +90,16 @@ public class BankMainActivity extends AppCompatActivity {
             });
         }
 
-        // 7. Load backend transaction history
+        // 7. Filter button ("All ▾")
+        if (tvFilter != null) {
+            tvFilter.setOnClickListener(v -> showFilterDialog());
+        }
+
+        // 8. Seed default mock transactions for smooth offline testing
+        seedInitialTransactions();
+        displayFilteredTransactions();
+
+        // 9. Fetch backend transaction history if online
         loadTransactions();
     }
 
@@ -91,6 +107,64 @@ public class BankMainActivity extends AppCompatActivity {
         if (tvBalance != null) {
             tvBalance.setText(String.format(Locale.getDefault(), "%.0f zł", currentBalance));
         }
+    }
+
+    // --- FILTER DIALOG (All ▾) ---
+    private void showFilterDialog() {
+        String[] options = {
+                "Wszystkie (All)",
+                "Przychody (↙ Wpłaty / Przelewy)",
+                "Wydatki (↗ Płatności kartą)"
+        };
+
+        new AlertDialog.Builder(this)
+                .setTitle("Filtruj historię")
+                .setSingleChoiceItems(options, currentFilter, (dialog, which) -> {
+                    currentFilter = which;
+                    if (tvFilter != null) {
+                        if (which == 0) tvFilter.setText("All ▾");
+                        else if (which == 1) tvFilter.setText("Przychody ▾");
+                        else tvFilter.setText("Wydatki ▾");
+                    }
+                    displayFilteredTransactions();
+                    dialog.dismiss();
+                })
+                .show();
+    }
+
+    // Displays transactions according to current filter
+    private void displayFilteredTransactions() {
+        if (transactionsContainer == null) return;
+        transactionsContainer.removeAllViews();
+
+        int displayedCount = 0;
+        for (TransactionResponse t : allTransactions) {
+            if (currentFilter == 1 && !t.isIncoming()) continue;
+            if (currentFilter == 2 && t.isIncoming()) continue;
+            renderTransactionView(t.getTitle(), t.getDescription(), t.getAmount(), t.getDate(), t.isIncoming());
+            displayedCount++;
+        }
+
+        if (displayedCount == 0) {
+            TextView emptyView = new TextView(this);
+            emptyView.setText("Brak transakcji w wybranej kategorii");
+            emptyView.setTextColor(0xFF888888);
+            emptyView.setTextSize(14);
+            emptyView.setGravity(Gravity.CENTER);
+            emptyView.setPadding(0, dpToPx(30), 0, dpToPx(30));
+            transactionsContainer.addView(emptyView);
+        }
+    }
+
+    private void seedInitialTransactions() {
+        allTransactions.clear();
+        allTransactions.add(new TransactionResponse("tx-1", "Kinga Kowalska", "Przelew przychodzący", 120.0, "12.05.2025", true));
+        allTransactions.add(new TransactionResponse("tx-2", "Sklep Spożywczy Biedronka", "Płatność kartą", 80.0, "10.05.2025", false));
+        allTransactions.add(new TransactionResponse("tx-3", "Jan Nowak", "Przelew przychodzący", 450.0, "08.05.2025", true));
+        allTransactions.add(new TransactionResponse("tx-4", "Rachunek za Internet", "Opłata za usługę", 60.0, "05.05.2025", false));
+        allTransactions.add(new TransactionResponse("tx-5", "Anna Zielińska", "Przelew przychodzący", 230.0, "02.05.2025", true));
+        allTransactions.add(new TransactionResponse("tx-6", "Piekarnia Nowa", "Płatność kartą", 35.0, "30.04.2025", false));
+        allTransactions.add(new TransactionResponse("tx-7", "Marek Wiśniewski", "Przelew przychodzący", 760.0, "28.04.2025", true));
     }
 
     // --- DIALOG: SETTINGS (≡) ---
@@ -151,7 +225,9 @@ public class BankMainActivity extends AppCompatActivity {
                                 updateBalanceDisplay();
 
                                 String today = new SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(new Date());
-                                addTransactionRow("Wpłata we wpłatomacie", "Wpłata gotówkowa", amount, today, true);
+                                // Insert new transaction at index 0
+                                allTransactions.add(0, new TransactionResponse("tx-new", "Wpłatomat własny", "Wpłata gotówkowa", amount, today, true));
+                                displayFilteredTransactions();
 
                                 Toast.makeText(BankMainActivity.this, "Wpłacono +" + String.format(Locale.getDefault(), "%.0f zł", amount) + "!", Toast.LENGTH_SHORT).show();
                             }
@@ -162,7 +238,7 @@ public class BankMainActivity extends AppCompatActivity {
                 .show();
     }
 
-    // --- TRANSACTION HISTORY LOADING ---
+    // --- BACKEND TRANSACTION LOADING ---
     private void loadTransactions() {
         if (token != null && accountId != null) {
             ApiClient.getApiService().getTransactions("Bearer " + token, accountId)
@@ -170,25 +246,22 @@ public class BankMainActivity extends AppCompatActivity {
                         @Override
                         public void onResponse(Call<List<TransactionResponse>> call, Response<List<TransactionResponse>> response) {
                             if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
-                                if (transactionsContainer != null) {
-                                    transactionsContainer.removeAllViews();
-                                }
-                                for (TransactionResponse t : response.body()) {
-                                    addTransactionRow(t.getTitle(), t.getDescription(), t.getAmount(), t.getDate(), t.isIncoming());
-                                }
+                                allTransactions.clear();
+                                allTransactions.addAll(response.body());
+                                displayFilteredTransactions();
                             }
                         }
 
                         @Override
                         public void onFailure(Call<List<TransactionResponse>> call, Throwable t) {
-                            // Offline or network error: existing default items stay visible
+                            // Keeps seeded transactions if offline
                         }
                     });
         }
     }
 
-    // Dynamically adds a new transaction row to the scrollable card
-    private void addTransactionRow(String title, String subtitle, double amount, String date, boolean isIncoming) {
+    // Creates a single transaction view row
+    private void renderTransactionView(String title, String subtitle, double amount, String date, boolean isIncoming) {
         if (transactionsContainer == null) return;
 
         LinearLayout row = new LinearLayout(this);
@@ -196,10 +269,10 @@ public class BankMainActivity extends AppCompatActivity {
         row.setGravity(Gravity.CENTER_VERTICAL);
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        params.setMargins(0, 24, 0, 0);
+        params.setMargins(0, dpToPx(16), 0, 0);
         row.setLayoutParams(params);
 
-        // Arrow icon
+        // Arrow icon (↙ for incoming, ↗ for outgoing)
         TextView tvArrow = new TextView(this);
         tvArrow.setLayoutParams(new LinearLayout.LayoutParams(dpToPx(40), dpToPx(40)));
         tvArrow.setGravity(Gravity.CENTER);
@@ -253,8 +326,7 @@ public class BankMainActivity extends AppCompatActivity {
 
         row.addView(amountCol);
 
-        // Insert at the top of the history list
-        transactionsContainer.addView(row, 0);
+        transactionsContainer.addView(row);
     }
 
     private int dpToPx(int dp) {
