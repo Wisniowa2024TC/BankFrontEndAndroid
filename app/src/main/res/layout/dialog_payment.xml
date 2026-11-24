@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <ImageView
+        android:id="@+id/pay_image"
+        android:layout_width="150dp"
+        android:layout_height="130dp"
+        android:contentDescription="Astolfo"
+        android:scaleType="fitCenter"
+        android:src="@drawable/astolfoincorner" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/pay_title"
+        android:layout_marginTop="12dp"
+        android:gravity="center"
+        android:text="Potwierdzasz płatność?"
+        android:textAppearance="?attr/textAppearanceTitleLarge"
+        android:textColor="?attr/colorOnSurface" />
+
+    <TextView
+        android:id="@+id/pay_amount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:fontFamily="sans-serif-black"
+            android:textStyle="bold"
+        android:text="0,00 zł"
+        android:textColor="@color/pink_primary"
+        android:textSize="40sp" />
+
+    <TextView
+        android:id="@+id/pay_merchant"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:gravity="center"
+        android:text="Odbiorca"
+        android:textAppearance="?attr/textAppearanceBodyMedium"
+        android:textColor="?attr/colorOnSurfaceVariant" />
+</LinearLayout>

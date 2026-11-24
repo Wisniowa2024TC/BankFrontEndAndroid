@@ -6,8 +6,8 @@ import retrofit2.http.Body;
 import retrofit2.http.GET;
 import retrofit2.http.Header;
 import retrofit2.http.POST;
+import retrofit2.http.PUT;
 import retrofit2.http.Path;
-import retrofit2.http.Query;
 
 public interface GoonBankApi {
     @POST("api/auth/login")
@@ -25,15 +25,24 @@ public interface GoonBankApi {
     @GET("api/Account/{id}/transactions")
     Call<List<TransactionResponse>> getTransactions(@Header("Authorization") String token, @Path("id") String accountId);
 
+    @POST("api/Transaction")
+    Call<TransactionResponse> createTransaction(@Header("Authorization") String token, @Body CreateTransactionRequest request);
+
+    @PUT("api/Transaction/{id}/execute")
+    Call<TransactionResponse> executeTransaction(@Header("Authorization") String token, @Path("id") String transactionId);
+
+    @POST("api/BlihProfile")
+    Call<Void> createBlihProfile(@Header("Authorization") String token, @Body CreateBlihProfileRequest request);
+
     @POST("api/Blih/code")
     Call<BlihCodeResponse> generateBlihCode(@Header("Authorization") String token, @Body BlihCodeRequest request);
 
-    @POST("api/Blih/payment/initiate")
-    Call<BlihPaymentResponse> initiatePayment(@Body BlihPaymentRequest request);
-
-    @GET("api/Blih/payment/check")
-    Call<BlihPaymentResponse> checkPayment(@Query("code") String code);
+    @GET("api/Blih/payment/pending/{accountId}")
+    Call<BlihPaymentResponse> getPendingPayment(@Header("Authorization") String token, @Path("accountId") String accountId);
 
     @POST("api/Blih/payment/{id}/confirm")
     Call<Void> confirmPayment(@Header("Authorization") String token, @Path("id") String paymentId);
+
+    @POST("api/Blih/payment/{id}/reject")
+    Call<Void> rejectPayment(@Header("Authorization") String token, @Path("id") String paymentId);
 }

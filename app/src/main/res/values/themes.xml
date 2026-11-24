@@ -1,8 +1,38 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
-    <style name="Base.Theme.DemoEmptyActivity" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+    <style name="Base.Theme.DemoEmptyActivity" parent="Theme.Material3.Light.NoActionBar">
+        <item name="colorPrimary">@color/pink_primary</item>
+        <item name="colorOnPrimary">@color/pink_on_primary</item>
+        <item name="colorPrimaryContainer">@color/pink_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/pink_on_primary_container</item>
+        <item name="colorSecondary">@color/pink_secondary</item>
+        <item name="colorSecondaryContainer">@color/pink_secondary_container</item>
+        <item name="colorOnSecondaryContainer">@color/pink_on_secondary_container</item>
+        <item name="colorTertiary">@color/pink_tertiary</item>
+        <item name="colorTertiaryContainer">@color/pink_tertiary_container</item>
+        <item name="android:colorBackground">@color/pink_background</item>
+        <item name="colorSurface">@color/pink_surface</item>
+        <item name="colorSurfaceVariant">@color/pink_surface_variant</item>
+        <item name="colorSurfaceContainerLowest">@color/white</item>
+        <item name="colorSurfaceContainerLow">@color/pink_surface</item>
+        <item name="colorSurfaceContainer">@color/pink_surface_container</item>
+        <item name="colorSurfaceBright">@color/pink_surface</item>
+        <item name="colorSurfaceDim">@color/pink_surface_variant</item>
+        <item name="colorSurfaceContainerHigh">@color/pink_surface_container</item>
+        <item name="colorSurfaceContainerHighest">@color/pink_surface_variant</item>
+        <item name="colorOnSurface">@color/pink_on_surface</item>
+        <item name="colorOnSurfaceVariant">@color/pink_on_surface_variant</item>
+        <item name="colorOutline">@color/pink_outline</item>
+        <item name="colorOutlineVariant">@color/pink_outline_variant</item>
+        <item name="colorError">@color/pink_error</item>
+        <item name="android:statusBarColor">@color/pink_background</item>
+        <item name="android:navigationBarColor">@color/pink_background</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="27">true</item>
+        <item name="materialAlertDialogTheme">@style/ThemeOverlay.GoonBank.Dialog</item>
+    </style>
+
+    <style name="ThemeOverlay.GoonBank.Dialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="dialogCornerRadius">28dp</item>
     </style>
 
     <style name="Theme.DemoEmptyActivity" parent="Base.Theme.DemoEmptyActivity" />

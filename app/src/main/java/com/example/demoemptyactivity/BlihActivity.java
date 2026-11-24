@@ -1,22 +1,28 @@
 package com.example.demoemptyactivity;
 
-import android.app.AlertDialog;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Looper;
-import android.widget.Button;
+import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
+
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.demoemptyactivity.network.ApiClient;
 import com.example.demoemptyactivity.network.BlihCodeRequest;
 import com.example.demoemptyactivity.network.BlihCodeResponse;
 import com.example.demoemptyactivity.network.BlihPaymentResponse;
+import com.example.demoemptyactivity.network.CreateBlihProfileRequest;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.snackbar.Snackbar;
 
+import java.security.MessageDigest;
+import java.util.HashSet;
 import java.util.Locale;
-import java.util.Random;
+import java.util.Set;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -24,137 +30,159 @@ import retrofit2.Response;
 
 public class BlihActivity extends AppCompatActivity {
 
+    private static final long CODE_TTL_MS = 120_000;
+    private static final long POLL_MS = 1500;
+
     private TextView tvCode;
     private TextView tvTimer;
     private CountDownTimer timer;
-    private Handler pollHandler = new Handler(Looper.getMainLooper());
-    private Runnable pollRunnable;
-    private String currentCode = "";
-    private String token;
-    private boolean isDialogShowing = false;
+    private final Handler pollHandler = new Handler(Looper.getMainLooper());
+    private final Runnable pollRunnable = new Runnable() {
+        @Override
+        public void run() {
+            if (paymentDialog == null && !actionInFlight) checkIncomingPayment();
+            pollHandler.postDelayed(this, POLL_MS);
+        }
+    };
+
+    private boolean codeActive = false;
+    private boolean fetchingCode = false;
+    private boolean actionInFlight = false;
+    private boolean triedCreatingProfile = false;
+    private AlertDialog paymentDialog;
+    private final Set<String> handledPayments = new HashSet<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (!Session.isLoggedIn()) {
+            Session.kickToLogin(this, false);
+            return;
+        }
         setContentView(R.layout.blih);
+        getWindow().setStatusBarColor(0xFFFFD5E1);
+        getWindow().setNavigationBarColor(0xFFFFD5E1);
 
         tvCode = findViewById(R.id.textView9);
         tvTimer = findViewById(R.id.textView7);
-        Button btnWyjdz = findViewById(R.id.button4);
+        findViewById(R.id.button4).setOnClickListener(v -> finish());
 
-        if (btnWyjdz != null) {
-            btnWyjdz.setOnClickListener(v -> finish());
-        }
+        View.OnClickListener refresh = v -> { if (!codeActive) fetchCode(); };
+        tvCode.setOnClickListener(refresh);
+        tvTimer.setOnClickListener(refresh);
 
-        // Tap code or timer to refresh if expired
-        if (tvCode != null) {
-            tvCode.setOnClickListener(v -> refreshBlihCode());
-        }
-        if (tvTimer != null) {
-            tvTimer.setOnClickListener(v -> refreshBlihCode());
-        }
-
-        token = getIntent().getStringExtra("TOKEN");
-        String accountId = getIntent().getStringExtra("ACCOUNT_ID");
-
-        if (token != null && accountId != null && !accountId.isEmpty()) {
-            if (tvCode != null) tvCode.setText("------");
-            if (tvTimer != null) tvTimer.setText("Pobieranie kodu...");
-            fetchRealBlihCode(token, accountId);
-        } else {
-            refreshBlihCode();
-        }
-
-        // Start listening for merchant payment requests for this code
-        startPaymentListener();
+        fetchCode();
     }
 
-    private void refreshBlihCode() {
-        String accountId = getIntent().getStringExtra("ACCOUNT_ID");
-        if (token != null && accountId != null && !accountId.isEmpty()) {
-            fetchRealBlihCode(token, accountId);
-        } else {
-            int randomCode = 100000 + new Random().nextInt(900000);
-            displayCodeAndStartTimer(String.valueOf(randomCode));
-        }
+    @Override
+    protected void onResume() {
+        super.onResume();
+        pollHandler.removeCallbacks(pollRunnable);
+        pollHandler.postDelayed(pollRunnable, 500);
     }
 
-    private void fetchRealBlihCode(String token, String accountId) {
-        ApiClient.getApiService().generateBlihCode("Bearer " + token, new BlihCodeRequest(accountId))
+    @Override
+    protected void onPause() {
+        super.onPause();
+        pollHandler.removeCallbacks(pollRunnable);
+    }
+
+    // ---------- Code ----------
+    private void fetchCode() {
+        if (fetchingCode) return;
+        fetchingCode = true;
+        codeActive = false;
+        if (timer != null) timer.cancel();
+        tvCode.setText("------");
+        tvTimer.setText("Astolfo generuje kod…");
+        tvCode.setAlpha(1f);
+
+        ApiClient.getApiService().generateBlihCode(Session.bearer(), new BlihCodeRequest(Session.accountId))
                 .enqueue(new Callback<BlihCodeResponse>() {
                     @Override
                     public void onResponse(Call<BlihCodeResponse> call, Response<BlihCodeResponse> response) {
-                        if (response.isSuccessful() && response.body() != null) {
-                            String code = response.body().getCode();
-                            currentCode = code.replace(" ", "");
-                            displayCodeAndStartTimer(code);
+                        if (isFinishing() || isDestroyed()) return;
+                        fetchingCode = false;
+                        if (response.code() == 401) { Session.kickToLogin(BlihActivity.this, true); return; }
+                        if (response.isSuccessful() && response.body() != null && response.body().getCode() != null) {
+                            showCode(response.body().getCode().replace(" ", ""));
+                        } else if (response.code() == 400 && !triedCreatingProfile) {
+                            // BLIH not enabled for this account yet -> enable it and retry
+                            triedCreatingProfile = true;
+                            enableBlihProfile();
+                        } else {
+                            showError(ApiClient.errorMessage(response));
                         }
                     }
 
                     @Override
                     public void onFailure(Call<BlihCodeResponse> call, Throwable t) {
-                        int randomCode = 100000 + new Random().nextInt(900000);
-                        displayCodeAndStartTimer(String.valueOf(randomCode));
+                        if (isFinishing() || isDestroyed()) return;
+                        fetchingCode = false;
+                        showError("Brak połączenia z serwerem");
                     }
                 });
     }
 
-    private void displayCodeAndStartTimer(String rawCode) {
-        currentCode = rawCode.replace(" ", "");
-        if (tvCode != null) {
-            if (rawCode.length() == 6) {
-                tvCode.setText(rawCode.substring(0, 3) + " " + rawCode.substring(3, 6));
-            } else {
-                tvCode.setText(rawCode);
-            }
-        }
+    private void enableBlihProfile() {
+        tvTimer.setText("Aktywuję BLIH…");
+        ApiClient.getApiService().createBlihProfile(Session.bearer(),
+                new CreateBlihProfileRequest(Session.accountId, sha256("goonbank-phone:" + Session.accountId)))
+                .enqueue(new Callback<Void>() {
+                    @Override
+                    public void onResponse(Call<Void> call, Response<Void> response) {
+                        if (isFinishing() || isDestroyed()) return;
+                        // 409 = profile already exists; either way try again
+                        if (response.isSuccessful() || response.code() == 409) fetchCode();
+                        else showError(ApiClient.errorMessage(response));
+                    }
 
-        if (timer != null) {
-            timer.cancel();
-        }
+                    @Override
+                    public void onFailure(Call<Void> call, Throwable t) {
+                        if (isFinishing() || isDestroyed()) return;
+                        showError("Brak połączenia z serwerem");
+                    }
+                });
+    }
 
-        timer = new CountDownTimer(120000, 1000) {
+    private void showError(String msg) {
+        codeActive = false;
+        tvCode.setText("------");
+        tvTimer.setText("Dotknij, aby spróbować ponownie");
+        snack(msg);
+    }
+
+    private void showCode(String code) {
+        codeActive = true;
+        tvCode.setAlpha(1f);
+        tvCode.setText(code.length() == 6 ? code.substring(0, 3) + " " + code.substring(3) : code);
+        if (timer != null) timer.cancel();
+        timer = new CountDownTimer(CODE_TTL_MS, 1000) {
             @Override
-            public void onTick(long millisUntilFinished) {
-                if (tvTimer != null) {
-                    long minutes = (millisUntilFinished / 1000) / 60;
-                    long seconds = (millisUntilFinished / 1000) % 60;
-                    tvTimer.setText(String.format(Locale.getDefault(), "Ważny przez: %02d:%02d", minutes, seconds));
-                }
+            public void onTick(long ms) {
+                long s = ms / 1000;
+                tvTimer.setText(String.format(Locale.getDefault(), "Ważny przez %d:%02d", s / 60, s % 60));
             }
 
             @Override
             public void onFinish() {
-                if (tvTimer != null) tvTimer.setText("Kod wygasł! Kliknij kod, aby odświeżyć");
-                if (tvCode != null) tvCode.setText("------");
-                currentCode = "";
+                codeActive = false;
+                tvCode.setText("------");
+                tvTimer.setText("Kod wygasł — dotknij, aby odświeżyć");
             }
         }.start();
     }
 
-    // Polls backend every 1.5 seconds for incoming payment requests on this code
-    private void startPaymentListener() {
-        pollRunnable = new Runnable() {
-            @Override
-            public void run() {
-                if (!isDialogShowing && currentCode != null && !currentCode.isEmpty()) {
-                    checkIncomingPayment(currentCode);
-                }
-                pollHandler.postDelayed(this, 1500);
-            }
-        };
-        pollHandler.postDelayed(pollRunnable, 1000);
-    }
-
-    private void checkIncomingPayment(String code) {
-        ApiClient.getApiService().checkPayment(code).enqueue(new Callback<BlihPaymentResponse>() {
+    // ---------- Incoming payments ----------
+    private void checkIncomingPayment() {
+        ApiClient.getApiService().getPendingPayment(Session.bearer(), Session.accountId).enqueue(new Callback<BlihPaymentResponse>() {
             @Override
             public void onResponse(Call<BlihPaymentResponse> call, Response<BlihPaymentResponse> response) {
-                if (response.isSuccessful() && response.body() != null && !isDialogShowing) {
-                    if (!isFinishing() && !isDestroyed()) {
-                        BlihPaymentResponse payment = response.body();
-                        showPaymentConfirmationDialog(payment);
-                    }
+                if (isFinishing() || isDestroyed() || paymentDialog != null) return;
+                BlihPaymentResponse p = response.body();
+                if (response.isSuccessful() && p != null && p.getPaymentId() != null
+                        && !handledPayments.contains(p.getPaymentId())) {
+                    showPaymentDialog(p);
                 }
             }
 
@@ -163,47 +191,102 @@ public class BlihActivity extends AppCompatActivity {
         });
     }
 
-    // Shows confirmation dialog when merchant initiates payment
-    private void showPaymentConfirmationDialog(BlihPaymentResponse payment) {
-        if (isFinishing() || isDestroyed()) return;
-        isDialogShowing = true;
-        new AlertDialog.Builder(this)
-                .setTitle("💳 Potwierdzenie płatności BLIK")
-                .setMessage("Odbiorca: " + payment.getMerchantId() + "\nKwota: " + String.format(Locale.getDefault(), "%.2f zł", payment.getAmount()) + "\n\nCzy akceptujesz płatność?")
+    private void showPaymentDialog(BlihPaymentResponse p) {
+        // Code was consumed by the merchant
+        codeActive = false;
+        if (timer != null) timer.cancel();
+        tvTimer.setText("Kod użyty ✓");
+        tvCode.setAlpha(0.35f);
+
+        View v = getLayoutInflater().inflate(R.layout.dialog_payment, null);
+        ((TextView) v.findViewById(R.id.pay_amount)).setText(Session.money(p.getAmount()));
+        ((TextView) v.findViewById(R.id.pay_merchant)).setText("Odbiorca: " + p.getMerchantId());
+
+        paymentDialog = new MaterialAlertDialogBuilder(this)
+                .setView(v)
                 .setCancelable(false)
-                .setPositiveButton("✓ Akceptuj", (dialog, which) -> {
-                    confirmPayment(payment.getPaymentId(), payment.getAmount());
-                })
-                .setNegativeButton("✗ Odrzuć", (dialog, which) -> {
-                    Toast.makeText(BlihActivity.this, "Płatność odrzucona.", Toast.LENGTH_SHORT).show();
-                    isDialogShowing = false;
+                .setPositiveButton("Zapłać", (d, w) -> respond(p, true))
+                .setNegativeButton("Odrzuć", (d, w) -> respond(p, false))
+                .show();
+    }
+
+    private void respond(BlihPaymentResponse p, boolean accept) {
+        paymentDialog = null;
+        handledPayments.add(p.getPaymentId());
+        actionInFlight = true;
+        Call<Void> call = accept
+                ? ApiClient.getApiService().confirmPayment(Session.bearer(), p.getPaymentId())
+                : ApiClient.getApiService().rejectPayment(Session.bearer(), p.getPaymentId());
+        call.enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(Call<Void> c, Response<Void> response) {
+                if (isFinishing() || isDestroyed()) return;
+                actionInFlight = false;
+                if (response.isSuccessful()) {
+                    if (accept) {
+                        showResult("Zapłacono!", "Odbiorca: " + p.getMerchantId() + "\nAstolfo jest dumny ♡", true, p.getAmount());
+                    } else {
+                        snack("Płatność odrzucona");
+                        fetchCode();
+                    }
+                } else {
+                    String msg = ApiClient.errorMessage(response);
+                    if (msg.contains("Insufficient")) msg = "Za mało środków na koncie";
+                    else if (msg.contains("timed out")) msg = "Czas na potwierdzenie minął";
+                    showResult("Płatność nieudana", msg, false, 0);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Void> c, Throwable t) {
+                if (isFinishing() || isDestroyed()) return;
+                actionInFlight = false;
+                showResult("Brak połączenia", "Nie wiadomo, czy płatność przeszła — sprawdź historię.", false, 0);
+            }
+        });
+    }
+
+    private void showResult(String title, String msg, boolean success, double amount) {
+        View v = getLayoutInflater().inflate(R.layout.dialog_payment, null);
+        ((ImageView) v.findViewById(R.id.pay_image)).setImageResource(
+                success ? R.drawable.astolfochibiblih : R.drawable.astolfoincorner);
+        ((TextView) v.findViewById(R.id.pay_title)).setText(title);
+        TextView amountView = v.findViewById(R.id.pay_amount);
+        if (success) amountView.setText("−" + Session.money(amount));
+        else amountView.setVisibility(View.GONE);
+        ((TextView) v.findViewById(R.id.pay_merchant)).setText(msg);
+
+        new MaterialAlertDialogBuilder(this)
+                .setView(v)
+                .setCancelable(false)
+                .setPositiveButton(success ? "Super ♡" : "Nowy kod", (d, w) -> {
+                    if (success) finish(); else fetchCode();
                 })
                 .show();
     }
 
-    private void confirmPayment(String paymentId, double amount) {
-        String authHeader = token != null ? "Bearer " + token : "";
-        ApiClient.getApiService().confirmPayment(authHeader, paymentId).enqueue(new Callback<Void>() {
-            @Override
-            public void onResponse(Call<Void> call, Response<Void> response) {
-                Toast.makeText(BlihActivity.this, "Płatność " + String.format(Locale.getDefault(), "%.2f zł", amount) + " zaakceptowana!", Toast.LENGTH_LONG).show();
-                finish();
-            }
+    private void snack(String msg) {
+        Snackbar.make(findViewById(android.R.id.content), msg, Snackbar.LENGTH_LONG)
+                .setAnchorView(R.id.button4)
+                .show();
+    }
 
-            @Override
-            public void onFailure(Call<Void> call, Throwable t) {
-                Toast.makeText(BlihActivity.this, "Płatność zaakceptowana!", Toast.LENGTH_SHORT).show();
-                finish();
-            }
-        });
+    private static String sha256(String s) {
+        try {
+            byte[] h = MessageDigest.getInstance("SHA-256").digest(s.getBytes("UTF-8"));
+            StringBuilder sb = new StringBuilder();
+            for (byte b : h) sb.append(String.format("%02x", b));
+            return sb.toString();
+        } catch (Exception e) {
+            return s;
+        }
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         if (timer != null) timer.cancel();
-        if (pollHandler != null && pollRunnable != null) {
-            pollHandler.removeCallbacks(pollRunnable);
-        }
+        pollHandler.removeCallbacks(pollRunnable);
+        if (paymentDialog != null) paymentDialog.dismiss();
     }
 }

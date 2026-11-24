@@ -1,10 +1,13 @@
 package com.example.demoemptyactivity;
 
-import android.os.Bundle;
-import android.view.View;
-import android.widget.EditText;
-import android.widget.Toast;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.os.Bundle;
+import android.text.InputType;
+import android.util.Patterns;
+import android.view.View;
+import android.view.inputmethod.EditorInfo;
+import android.widget.EditText;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -12,137 +15,216 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-import com.example.demoemptyactivity.network.AccountResponse;
 import com.example.demoemptyactivity.network.ApiClient;
 import com.example.demoemptyactivity.network.LoginRequest;
 import com.example.demoemptyactivity.network.LoginResponse;
-import com.example.demoemptyactivity.network.RegisterRequest;
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.snackbar.Snackbar;
+import com.google.android.material.textfield.TextInputLayout;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity {
-    EditText poleZLoginem;
-    EditText haslo;
+    private static final int REQ_REGISTER = 1;
+
+    private EditText etEmail;
+    private EditText etPassword;
+    private TextInputLayout emailLayout;
+    private TextInputLayout passwordLayout;
+    private MaterialButton btnLogin;
+    private View progress;
+    private MaterialButton btnServer;
+    private boolean loading = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        ApiClient.init(this);
 
-        EdgeToEdge.enable(this);
+        // Already logged in (e.g. relaunch from recents) -> go straight to dashboard
+        if (Session.isLoggedIn()) {
+            openDashboard();
+            return;
+        }
+
+        EdgeToEdge.enable(this,
+                androidx.activity.SystemBarStyle.light(android.graphics.Color.TRANSPARENT, android.graphics.Color.TRANSPARENT),
+                androidx.activity.SystemBarStyle.light(android.graphics.Color.TRANSPARENT, android.graphics.Color.TRANSPARENT));
         setContentView(R.layout.activity_main);
 
-        poleZLoginem = findViewById(R.id.user);
-        haslo = findViewById(R.id.haslo);
+        View root = findViewById(R.id.main);
+        ViewCompat.setOnApplyWindowInsetsListener(root, (v, insets) -> {
+            Insets bars = insets.getInsets(WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.ime());
+            v.setPadding(bars.left, bars.top, bars.right, bars.bottom);
+            boolean ime = insets.isVisible(WindowInsetsCompat.Type.ime());
+            View hero = findViewById(R.id.login_astolfo);
+            if (hero != null) hero.setVisibility(ime ? View.GONE : View.VISIBLE);
+            if (ime) {
+                // Keep the focused field visible above the keyboard
+                v.postDelayed(() -> {
+                    View f = getCurrentFocus();
+                    if (f != null) {
+                        android.graphics.Rect r = new android.graphics.Rect(0, 0, f.getWidth(), f.getHeight() + dp(96));
+                        f.requestRectangleOnScreen(r, false);
+                    }
+                }, 150);
+            }
+            return insets;
+        });
 
-        ViewCompat.setOnApplyWindowInsetsListener(
-                findViewById(R.id.main), (v, insets) -> {
-                    Insets systemBars = insets.getInsets(
-                            WindowInsetsCompat.Type.systemBars()
-                    );
+        etEmail = findViewById(R.id.user);
+        etPassword = findViewById(R.id.haslo);
+        emailLayout = findViewById(R.id.user_layout);
+        passwordLayout = findViewById(R.id.haslo_layout);
+        btnLogin = findViewById(R.id.btn_login);
+        progress = findViewById(R.id.login_progress);
+        btnServer = findViewById(R.id.btn_server);
 
-                    v.setPadding(
-                            systemBars.left,
-                            systemBars.top,
-                            systemBars.right,
-                            systemBars.bottom
-                    );
+        String lastEmail = prefs().getString("last_email", "");
+        etEmail.setText(lastEmail);
+        Ui.clearErrorOnEdit(emailLayout, passwordLayout);
 
-                    return insets;
-                }
-        );
+        btnLogin.setOnClickListener(v -> login());
+        etPassword.setOnEditorActionListener((v, actionId, e) -> {
+            if (actionId == EditorInfo.IME_ACTION_DONE) { login(); return true; }
+            return false;
+        });
+        findViewById(R.id.btn_go_register).setOnClickListener(v ->
+                startActivityForResult(new Intent(this, RegisterActivity.class), REQ_REGISTER));
+        btnServer.setOnClickListener(v -> showServerDialog());
+        updateServerLabel();
+
+        if (getIntent().getBooleanExtra("EXPIRED", false)) {
+            Snackbar.make(root, "Sesja wygasła — zaloguj się ponownie", Snackbar.LENGTH_LONG).show();
+        }
     }
 
-    public void rejestracja(View view) {
-        setContentView(R.layout.rejestr);
+    private SharedPreferences prefs() {
+        return getSharedPreferences("goonbank", MODE_PRIVATE);
     }
 
-    // REAL BACKEND REGISTRATION (POST /api/Account)
-    public void newuser(View view) {
-        EditText etUsername = findViewById(R.id.username);
-        EditText etPassword = findViewById(R.id.password);
+    private void updateServerLabel() {
+        btnServer.setText("Serwer: " + ApiClient.getBaseUrl().replace("http://", "").replace("https://", "").replaceAll("/$", ""));
+    }
 
-        if (etUsername == null || etPassword == null) return;
+    private void showServerDialog() {
+        View view = getLayoutInflater().inflate(R.layout.dialog_deposit, null);
+        TextInputLayout layout = view.findViewById(R.id.amount_layout);
+        EditText input = view.findViewById(R.id.amount);
+        view.findViewById(R.id.amount_chips).setVisibility(View.GONE);
+        layout.setHint("Adres serwera");
+        layout.setSuffixText(null);
+        input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI);
+        input.setText(ApiClient.getBaseUrl());
+        input.setSelectAllOnFocus(true);
 
-        String username = etUsername.getText().toString().trim();
+        new MaterialAlertDialogBuilder(this)
+                .setTitle("Serwer GoonBank")
+                .setIcon(R.drawable.ic_server)
+                .setView(view)
+                .setPositiveButton("Zapisz", (d, w) -> {
+                    String url = input.getText().toString().trim();
+                    if (!url.isEmpty()) {
+                        ApiClient.setBaseUrl(this, url);
+                        updateServerLabel();
+                    }
+                })
+                .setNeutralButton("Domyślny", (d, w) -> {
+                    ApiClient.setBaseUrl(this, ApiClient.DEFAULT_BASE_URL);
+                    updateServerLabel();
+                })
+                .setNegativeButton("Anuluj", null)
+                .show();
+    }
+
+    private void setLoading(boolean l) {
+        loading = l;
+        btnLogin.setEnabled(!l);
+        btnLogin.setText(l ? "Logowanie…" : "Zaloguj się");
+        progress.setVisibility(l ? View.VISIBLE : View.INVISIBLE);
+    }
+
+    private void login() {
+        if (loading) return;
+        String email = etEmail.getText().toString().trim();
         String password = etPassword.getText().toString();
 
-        if (username.isEmpty() || password.isEmpty()) {
-            Toast.makeText(this, "Podaj username i hasło!", Toast.LENGTH_SHORT).show();
-            return;
+        emailLayout.setError(null);
+        passwordLayout.setError(null);
+        boolean ok = true;
+        if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            emailLayout.setError("Podaj poprawny e-mail");
+            ok = false;
         }
-
-        String email = username.contains("@") ? username : username.toLowerCase() + "@goonbank.pl";
-        RegisterRequest request = new RegisterRequest(username, "Klient", email, password);
-
-        ApiClient.getApiService().register(request).enqueue(new Callback<AccountResponse>() {
-            @Override
-            public void onResponse(Call<AccountResponse> call, Response<AccountResponse> response) {
-                if (response.isSuccessful()) {
-                    Toast.makeText(MainActivity.this, "Konto utworzone! Zaloguj się.", Toast.LENGTH_SHORT).show();
-                    setContentView(R.layout.activity_main);
-                    poleZLoginem = findViewById(R.id.user);
-                    haslo = findViewById(R.id.haslo);
-                    if (poleZLoginem != null) {
-                        poleZLoginem.setText(email);
-                    }
-                } else {
-                    Toast.makeText(MainActivity.this, "Błąd rejestracji (Kod: " + response.code() + ")", Toast.LENGTH_SHORT).show();
-                }
-            }
-
-            @Override
-            public void onFailure(Call<AccountResponse> call, Throwable t) {
-                Toast.makeText(MainActivity.this, "Błąd połączenia: " + t.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
-    // REAL BACKEND LOGIN (POST /api/auth/login)
-    public void login(View view) {
-        String email = poleZLoginem.getText().toString().trim();
-        String password = haslo.getText().toString();
-
-        if (email.isEmpty() || password.isEmpty()) {
-            Toast.makeText(
-                    this,
-                    "Wypełnij wszystkie pola",
-                    Toast.LENGTH_SHORT
-            ).show();
-            return;
+        if (password.isEmpty()) {
+            passwordLayout.setError("Podaj hasło");
+            ok = false;
         }
+        if (!ok) return;
 
-        LoginRequest request = new LoginRequest(email, password);
-        ApiClient.getApiService().login(request).enqueue(new Callback<LoginResponse>() {
+        setLoading(true);
+        ApiClient.getApiService().login(new LoginRequest(email, password)).enqueue(new Callback<LoginResponse>() {
             @Override
             public void onResponse(Call<LoginResponse> call, Response<LoginResponse> response) {
+                if (isFinishing()) return;
+                setLoading(false);
                 if (response.isSuccessful() && response.body() != null) {
                     LoginResponse auth = response.body();
-
-                    Toast.makeText(MainActivity.this, "Witaj " + auth.getFirstName(), Toast.LENGTH_SHORT).show();
-
-                    Intent intent = new Intent(MainActivity.this, BankMainActivity.class);
-                    intent.putExtra("TOKEN", auth.getToken());
-                    intent.putExtra("ACCOUNT_ID", auth.getAccountId());
-                    intent.putExtra("NAME", auth.getFirstName() + " " + auth.getLastName());
-                    intent.putExtra("BALANCE", auth.getBalance());
-                    startActivity(intent);
+                    Session.token = auth.getToken();
+                    Session.accountId = auth.getAccountId();
+                    Session.firstName = nz(auth.getFirstName());
+                    Session.lastName = nz(auth.getLastName());
+                    Session.email = nz(auth.getEmail()).isEmpty() ? email : auth.getEmail();
+                    Session.accountNo = nz(auth.getAccountNo());
+                    Session.currency = auth.getCurrency() != null ? auth.getCurrency() : "PLN";
+                    Session.balance = auth.getBalance();
+                    prefs().edit().putString("last_email", email).apply();
+                    etPassword.setText("");
+                    openDashboard();
+                } else if (response.code() == 401) {
+                    passwordLayout.setError(ApiClient.errorMessage(response).contains("not active")
+                            ? "Konto nieaktywne" : "Nieprawidłowy e-mail lub hasło");
                 } else {
-                    Toast.makeText(MainActivity.this, "Błąd logowania. (Kod: " + response.code() + ")", Toast.LENGTH_SHORT).show();
+                    snack(ApiClient.errorMessage(response));
                 }
             }
 
             @Override
             public void onFailure(Call<LoginResponse> call, Throwable t) {
-                Toast.makeText(MainActivity.this, "Błąd połączenia z serwerem: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                if (isFinishing()) return;
+                setLoading(false);
+                snack("Brak połączenia z serwerem (" + ApiClient.getBaseUrl() + ")");
             }
         });
     }
 
-    public void backToLogin(View view) {
-        setContentView(R.layout.activity_main);
-        poleZLoginem = findViewById(R.id.user);
-        haslo = findViewById(R.id.haslo);
+    private void openDashboard() {
+        Intent intent = new Intent(this, BankMainActivity.class);
+        startActivity(intent);
+        finish();
+    }
+
+    private void snack(String msg) {
+        Snackbar.make(findViewById(R.id.main), msg, Snackbar.LENGTH_LONG).show();
+    }
+
+    private static String nz(String s) { return s == null ? "" : s; }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQ_REGISTER && resultCode == RESULT_OK && data != null) {
+            etEmail.setText(data.getStringExtra("EMAIL"));
+            etPassword.setText("");
+            etPassword.requestFocus();
+            snack("Konto utworzone! Astolfo mówi: zaloguj się ♡");
+        }
+    }
+
+    private int dp(int v) {
+        return Math.round(v * getResources().getDisplayMetrics().density);
     }
 }

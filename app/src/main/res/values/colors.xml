@@ -2,4 +2,26 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <color name="pink_primary">#E91E7A</color>
+    <color name="pink_on_primary">#FFFFFF</color>
+    <color name="pink_primary_container">#FFD8E7</color>
+    <color name="pink_on_primary_container">#3E0021</color>
+    <color name="pink_secondary">#B0466E</color>
+    <color name="pink_secondary_container">#FFD9E3</color>
+    <color name="pink_on_secondary_container">#3A0B1F</color>
+    <color name="pink_tertiary">#8E4FC2</color>
+    <color name="pink_tertiary_container">#F2DAFF</color>
+    <color name="pink_background">#FFF4F8</color>
+    <color name="pink_surface">#FFF8FA</color>
+    <color name="pink_surface_variant">#F6DCE5</color>
+    <color name="pink_surface_container">#FFE9F1</color>
+    <color name="pink_on_surface">#22191C</color>
+    <color name="pink_on_surface_variant">#6E5560</color>
+    <color name="pink_outline">#9E7A88</color>
+    <color name="pink_outline_variant">#E8C3D1</color>
+    <color name="pink_error">#BA1A1A</color>
+
+    <color name="money_in">#2E7D32</color>
+    <color name="money_out">#C2185B</color>
 </resources>

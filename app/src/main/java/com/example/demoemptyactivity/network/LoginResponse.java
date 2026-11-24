@@ -6,6 +6,13 @@ public class LoginResponse {
     private String firstName;
     private String lastName;
     private double balance;
+    private String email;
+    private String accountNo;
+    private String currency;
+
+    public String getEmail() { return email; }
+    public String getAccountNo() { return accountNo; }
+    public String getCurrency() { return currency; }
 
     public String getToken() {
         return token;
