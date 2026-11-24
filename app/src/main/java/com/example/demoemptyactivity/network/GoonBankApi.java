@@ -7,6 +7,7 @@ import retrofit2.http.GET;
 import retrofit2.http.Header;
 import retrofit2.http.POST;
 import retrofit2.http.Path;
+import retrofit2.http.Query;
 
 public interface GoonBankApi {
     @POST("api/auth/login")
@@ -26,4 +27,13 @@ public interface GoonBankApi {
 
     @POST("api/Blih/code")
     Call<BlihCodeResponse> generateBlihCode(@Header("Authorization") String token, @Body BlihCodeRequest request);
+
+    @POST("api/Blih/payment/initiate")
+    Call<BlihPaymentResponse> initiatePayment(@Body BlihPaymentRequest request);
+
+    @GET("api/Blih/payment/check")
+    Call<BlihPaymentResponse> checkPayment(@Query("code") String code);
+
+    @POST("api/Blih/payment/{id}/confirm")
+    Call<Void> confirmPayment(@Header("Authorization") String token, @Path("id") String paymentId);
 }
