@@ -41,7 +41,7 @@
         android:ems="10"
         android:textColor="#1A1A24"
         android:textColorHint="#666666"
-        android:inputType="textPassword"
+        android:inputType="text"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/textView2" />
 
