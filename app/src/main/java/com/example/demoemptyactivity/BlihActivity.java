@@ -46,6 +46,14 @@ public class BlihActivity extends AppCompatActivity {
             btnWyjdz.setOnClickListener(v -> finish());
         }
 
+        // Tap code or timer to refresh if expired
+        if (tvCode != null) {
+            tvCode.setOnClickListener(v -> refreshBlihCode());
+        }
+        if (tvTimer != null) {
+            tvTimer.setOnClickListener(v -> refreshBlihCode());
+        }
+
         token = getIntent().getStringExtra("TOKEN");
         String accountId = getIntent().getStringExtra("ACCOUNT_ID");
 
@@ -59,6 +67,16 @@ public class BlihActivity extends AppCompatActivity {
 
         // Start listening for merchant payment requests for this code
         startPaymentListener();
+    }
+
+    private void refreshBlihCode() {
+        String accountId = getIntent().getStringExtra("ACCOUNT_ID");
+        if (token != null && accountId != null && !accountId.isEmpty()) {
+            fetchRealBlihCode(token, accountId);
+        } else {
+            int randomCode = 100000 + new Random().nextInt(900000);
+            displayCodeAndStartTimer(String.valueOf(randomCode));
+        }
     }
 
     private void fetchRealBlihCode(String token, String accountId) {
@@ -104,8 +122,9 @@ public class BlihActivity extends AppCompatActivity {
 
             @Override
             public void onFinish() {
-                if (tvTimer != null) tvTimer.setText("Kod wygasł!");
+                if (tvTimer != null) tvTimer.setText("Kod wygasł! Kliknij kod, aby odświeżyć");
                 if (tvCode != null) tvCode.setText("------");
+                currentCode = "";
             }
         }.start();
     }
@@ -129,8 +148,10 @@ public class BlihActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call<BlihPaymentResponse> call, Response<BlihPaymentResponse> response) {
                 if (response.isSuccessful() && response.body() != null && !isDialogShowing) {
-                    BlihPaymentResponse payment = response.body();
-                    showPaymentConfirmationDialog(payment);
+                    if (!isFinishing() && !isDestroyed()) {
+                        BlihPaymentResponse payment = response.body();
+                        showPaymentConfirmationDialog(payment);
+                    }
                 }
             }
 
@@ -141,6 +162,7 @@ public class BlihActivity extends AppCompatActivity {
 
     // Shows confirmation dialog when merchant initiates payment
     private void showPaymentConfirmationDialog(BlihPaymentResponse payment) {
+        if (isFinishing() || isDestroyed()) return;
         isDialogShowing = true;
         new AlertDialog.Builder(this)
                 .setTitle("💳 Potwierdzenie płatności BLIK")
