@@ -3,6 +3,8 @@ package com.example.demoemptyactivity;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.EditText;
@@ -10,7 +12,9 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import com.example.demoemptyactivity.network.AccountResponse;
 import com.example.demoemptyactivity.network.ApiClient;
 import com.example.demoemptyactivity.network.TransactionResponse;
 
@@ -30,9 +34,13 @@ public class BankMainActivity extends AppCompatActivity {
     private TextView tvBalance;
     private TextView tvFilter;
     private LinearLayout transactionsContainer;
+    private SwipeRefreshLayout swipeRefresh;
     private String token;
     private String accountId;
     private String userName = "Artem Kowalski";
+
+    private final Handler autoUpdateHandler = new Handler(Looper.getMainLooper());
+    private Runnable autoUpdateRunnable;
 
     // 0 = All, 1 = Incoming only (↙), 2 = Outgoing only (↗)
     private int currentFilter = 0;
@@ -59,6 +67,11 @@ public class BankMainActivity extends AppCompatActivity {
         tvBalance = findViewById(R.id.tv_balance);
         tvFilter = findViewById(R.id.btn_filter_transactions);
         transactionsContainer = findViewById(R.id.transactions_container);
+        swipeRefresh = findViewById(R.id.swipe_refresh);
+        if (swipeRefresh != null) {
+            swipeRefresh.setColorSchemeColors(0xFF1A1A24, 0xFFE91E63);
+            swipeRefresh.setOnRefreshListener(() -> fetchAccountData(true));
+        }
         updateBalanceDisplay();
 
         // 3. Settings button (≡)
@@ -99,8 +112,40 @@ public class BankMainActivity extends AppCompatActivity {
         seedInitialTransactions();
         displayFilteredTransactions();
 
-        // 9. Fetch backend transaction history if online
-        loadTransactions();
+        // 9. Initial data fetch
+        fetchAccountData(false);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Immediately fetch updated balance & transactions when returning to this screen (e.g. from BLIK)
+        fetchAccountData(false);
+        startAutoUpdate();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        stopAutoUpdate();
+    }
+
+    private void startAutoUpdate() {
+        stopAutoUpdate();
+        autoUpdateRunnable = new Runnable() {
+            @Override
+            public void run() {
+                fetchAccountData(false);
+                autoUpdateHandler.postDelayed(this, 5000); // Autoupdate every 5 seconds
+            }
+        };
+        autoUpdateHandler.postDelayed(autoUpdateRunnable, 5000);
+    }
+
+    private void stopAutoUpdate() {
+        if (autoUpdateRunnable != null) {
+            autoUpdateHandler.removeCallbacks(autoUpdateRunnable);
+        }
     }
 
     private void updateBalanceDisplay() {
@@ -238,26 +283,49 @@ public class BankMainActivity extends AppCompatActivity {
                 .show();
     }
 
-    // --- BACKEND TRANSACTION LOADING ---
-    private void loadTransactions() {
-        if (token != null && accountId != null) {
-            ApiClient.getApiService().getTransactions("Bearer " + token, accountId)
-                    .enqueue(new Callback<List<TransactionResponse>>() {
-                        @Override
-                        public void onResponse(Call<List<TransactionResponse>> call, Response<List<TransactionResponse>> response) {
-                            if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
-                                allTransactions.clear();
-                                allTransactions.addAll(response.body());
-                                displayFilteredTransactions();
+    // --- BACKEND DATA FETCHING (SWIPE TO RELOAD & AUTOUPDATE) ---
+    private void fetchAccountData(boolean isManualSwipe) {
+        if (token == null || accountId == null) {
+            if (swipeRefresh != null) swipeRefresh.setRefreshing(false);
+            return;
+        }
+
+        // 1. Fetch updated balance from backend
+        ApiClient.getApiService().getAccount("Bearer " + token, accountId)
+                .enqueue(new Callback<AccountResponse>() {
+                    @Override
+                    public void onResponse(Call<AccountResponse> call, Response<AccountResponse> response) {
+                        if (response.isSuccessful() && response.body() != null) {
+                            currentBalance = response.body().getBalance();
+                            updateBalanceDisplay();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<AccountResponse> call, Throwable t) {}
+                });
+
+        // 2. Fetch updated transactions list from backend
+        ApiClient.getApiService().getTransactions("Bearer " + token, accountId)
+                .enqueue(new Callback<List<TransactionResponse>>() {
+                    @Override
+                    public void onResponse(Call<List<TransactionResponse>> call, Response<List<TransactionResponse>> response) {
+                        if (swipeRefresh != null) swipeRefresh.setRefreshing(false);
+                        if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
+                            allTransactions.clear();
+                            allTransactions.addAll(response.body());
+                            displayFilteredTransactions();
+                            if (isManualSwipe) {
+                                Toast.makeText(BankMainActivity.this, "Zaktualizowano dane", Toast.LENGTH_SHORT).show();
                             }
                         }
+                    }
 
-                        @Override
-                        public void onFailure(Call<List<TransactionResponse>> call, Throwable t) {
-                            // Keeps seeded transactions if offline
-                        }
-                    });
-        }
+                    @Override
+                    public void onFailure(Call<List<TransactionResponse>> call, Throwable t) {
+                        if (swipeRefresh != null) swipeRefresh.setRefreshing(false);
+                    }
+                });
     }
 
     // Creates a single transaction view row

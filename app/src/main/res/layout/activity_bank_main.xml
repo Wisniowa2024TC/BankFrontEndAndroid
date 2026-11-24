@@ -1,12 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/bank_main"
+    android:id="@+id/swipe_refresh"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="#ffd5e1"
     tools:context=".BankMainActivity">
+
+    <LinearLayout
+        android:id="@+id/bank_main"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:background="#ffd5e1">
     <!-- Top section -->
     <LinearLayout
         android:layout_width="match_parent"
@@ -307,3 +313,4 @@
 
 </LinearLayout>
 </LinearLayout>
+</androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
