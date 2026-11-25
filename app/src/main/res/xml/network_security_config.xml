@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    The GoonBank backend (https://192.168.0.10) uses a self-signed certificate from Caddy's
+    internal CA, so the app trusts that CA's root in addition to the system CAs.
+    res/raw/goonbank_server_ca.pem is exported from the server with:
+        sudo docker compose exec caddy cat /data/caddy/pki/authorities/local/root.crt
+    If the server's caddy_data volume is ever recreated, Caddy makes a new CA and this file
+    must be replaced.
+
+    Cleartext stays allowed for local development (dotnet run on http://10.0.2.2:5001).
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+            <certificates src="@raw/goonbank_server_ca" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

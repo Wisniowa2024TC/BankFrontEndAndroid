@@ -10,9 +10,10 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class ApiClient {
-    // 10.0.2.2 = host machine from the Android emulator. On a real phone use the PC's LAN IP
-    // (changeable at runtime via the "Serwer" button on the login screen).
-    public static final String DEFAULT_BASE_URL = "http://10.0.2.2:5001/";
+    // School server (Caddy HTTPS in front of the API, CA trusted via network_security_config).
+    // For a local backend use e.g. http://10.0.2.2:5001/ from the emulator; changeable at runtime
+    // via the "Serwer" button on the login screen.
+    public static final String DEFAULT_BASE_URL = "https://192.168.0.10/";
     private static final String PREFS = "goonbank";
     private static final String KEY_URL = "base_url";
 
