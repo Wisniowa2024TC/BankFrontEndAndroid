@@ -114,22 +114,22 @@
                 android:orientation="vertical">
 
                 <ImageView
-                    android:id="@+id/btn_wplac"
+                    android:id="@+id/btn_transfer"
                     android:layout_width="56dp"
                     android:layout_height="56dp"
                     android:background="@drawable/bg_circle_button"
                     android:clickable="true"
-                    android:contentDescription="Wpłać"
+                    android:contentDescription="Przelew"
                     android:elevation="3dp"
                     android:focusable="true"
                     android:scaleType="center"
-                    android:src="@drawable/ic_arrow_down" />
+                    android:src="@drawable/ic_swap" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
-                    android:text="Wpłać"
+                    android:text="Przelew"
                     android:textColor="#1A1A24" />
             </LinearLayout>
 

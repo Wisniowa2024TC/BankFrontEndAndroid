@@ -45,4 +45,11 @@ public interface GoonBankApi {
 
     @POST("api/Blih/payment/{id}/reject")
     Call<Void> rejectPayment(@Header("Authorization") String token, @Path("id") String paymentId);
+
+    // Receiving side of a BLIH payment (merchant role); the backend allows these anonymously.
+    @POST("api/Blih/payment/initiate")
+    Call<BlihInitiateResponse> initiateBlihPayment(@Body InitiateBlihPaymentRequest request);
+
+    @GET("api/Blih/payment/{id}/status")
+    Call<BlihStatusResponse> getBlihPaymentStatus(@Path("id") String paymentId);
 }

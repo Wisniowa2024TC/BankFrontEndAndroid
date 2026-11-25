@@ -11,6 +11,7 @@ import android.widget.TextView;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.demoemptyactivity.network.AccountResponse;
 import com.example.demoemptyactivity.network.ApiClient;
 import com.example.demoemptyactivity.network.BlihCodeRequest;
 import com.example.demoemptyactivity.network.BlihCodeResponse;
@@ -200,7 +201,7 @@ public class BlihActivity extends AppCompatActivity {
 
         View v = getLayoutInflater().inflate(R.layout.dialog_payment, null);
         ((TextView) v.findViewById(R.id.pay_amount)).setText(Session.money(p.getAmount()));
-        ((TextView) v.findViewById(R.id.pay_merchant)).setText("Odbiorca: " + p.getMerchantId());
+        ((TextView) v.findViewById(R.id.pay_merchant)).setText(payeeLabel(p.getMerchantId()));
 
         paymentDialog = new MaterialAlertDialogBuilder(this)
                 .setView(v)
@@ -224,7 +225,7 @@ public class BlihActivity extends AppCompatActivity {
                 actionInFlight = false;
                 if (response.isSuccessful()) {
                     if (accept) {
-                        showResult("Zapłacono!", "Odbiorca: " + p.getMerchantId() + "\nAstolfo jest dumny ♡", true, p.getAmount());
+                        showResult("Zapłacono!", payeeLabel(p.getMerchantId()) + "\nAstolfo jest dumny ♡", true, p.getAmount());
                     } else {
                         snack("Płatność odrzucona");
                         fetchCode();
@@ -263,6 +264,14 @@ public class BlihActivity extends AppCompatActivity {
                     if (success) finish(); else fetchCode();
                 })
                 .show();
+    }
+
+    /** Another GOONBANK user requesting money shows up with their account ID as the merchant. */
+    private static String payeeLabel(String merchantId) {
+        if (AccountResponse.isAccountId(merchantId)) {
+            return "Odbiorca: użytkownik GOONBANK\nID " + merchantId;
+        }
+        return "Odbiorca: " + merchantId;
     }
 
     private void snack(String msg) {

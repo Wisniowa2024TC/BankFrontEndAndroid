@@ -8,6 +8,7 @@ import java.util.TimeZone;
 /** Mirrors backend MoneyTransaction. */
 public class TransactionResponse {
     public static final int STATUS_PENDING = 0, STATUS_COMPLETED = 1, STATUS_FAILED = 2;
+    private static final String BLIH_TITLE_PREFIX = "BLIH Payment - ";
 
     private String transactionId;
     private String sourceAccountId;
@@ -33,7 +34,16 @@ public class TransactionResponse {
     }
 
     public String displayTitle(String myAccountId) {
-        if (title != null && !title.trim().isEmpty()) return title.trim().replaceFirst("^BLIH Payment - ", "");
+        if (title != null && !title.trim().isEmpty()) {
+            String t = title.trim();
+            if (!t.startsWith(BLIH_TITLE_PREFIX)) return t;
+            String payee = t.substring(BLIH_TITLE_PREFIX.length());
+            // A user-to-user BLIH transfer has the receiver's account ID as the "merchant"
+            if (AccountResponse.isAccountId(payee)) {
+                return isIncoming(myAccountId) ? "BLIH od użytkownika" : "BLIH do użytkownika";
+            }
+            return payee;
+        }
         switch (type) {
             case CreateTransactionRequest.TYPE_DEPOSIT: return "Wpłata";
             case CreateTransactionRequest.TYPE_WITHDRAWAL: return "Wypłata";
